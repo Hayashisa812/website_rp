@@ -4,4 +4,7 @@ git add .
 # 「ホームページのタイトルを変更」というメッセージと共に変更を記録する
 git commit -m "ホームページのタイトルを変更"
 
+#マージをする
+git pull origin main --no-rebase --allow-unrelated-histories
+#プッシュする
 git push origin main
