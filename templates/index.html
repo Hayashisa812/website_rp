@@ -2,12 +2,12 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>テスト</title>
+  <title>掲示板サイト</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 <body>
   <div id="thread"></div>
-  <!--<div class="bar"></div>-->
+  <div class="bar"></div>
   <textarea id="input" class="textbox"placeholder="書き込む内容" ></textarea><br>
   <button onclick="submitPost()"class="button">書き込む</button>
   <a class = "back_mainpage" href="/"onclick="del_member()">掲示板一覧に戻る</a>
