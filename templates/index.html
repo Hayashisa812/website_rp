@@ -134,7 +134,7 @@
       fetch(`/reaction/${boardName}`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({reaction:"https://cdn-icons-png.flaticon.com/512/1077/1077035.png",sender:localStorage.getItem("visitorID"), id:postID}),
+        body: JSON.stringify({sender:localStorage.getItem("visitorID"), id:postID}),
   
       })
 
