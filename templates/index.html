@@ -11,6 +11,7 @@
   <textarea id="input" class="textbox"placeholder="書き込む内容" ></textarea><br>
   <button onclick="submitPost()"class="button">書き込む</button>
   <a class = "back_mainpage" href="/"onclick="del_member()">掲示板一覧に戻る</a>
+  <p class="member_text">閲覧中の人</p>
   <div id="member_bar"></div>
   <!--<button class="reaction_button" onclick="submitReaction()">リアクション</button>-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
@@ -34,11 +35,11 @@
           const reactionsContainerId = `reactions-for-${post.id}`;
           if (post.sender === localStorage.getItem("visitorID")) {
             postElement.style.backgroundColor = "white"; // 自分の投稿は白色背景
-            postElement.innerHTML =  `<div class = "time">${post.time}</div><span class="id">${post.sender}</span> <span>${post.text}</span><button class="delete_button"onclick="delete_post(${post.id})">削除</button><button class="reactions-container" id="${reactionsContainerId}" onclick="submitReaction(${post.id})">反応</button>`;
+            postElement.innerHTML =  `<div class = "time">${post.time}</div><span class="id">${post.sender}</span> <button class="delete_button"onclick="delete_post(${post.id})">削除</button><button class="reactions-container" id="${reactionsContainerId}" onclick="submitReaction(${post.id})">反応</button><span>${post.text}</span>`;
             ;
           } else {
             postElement.style.backgroundColor = "rgb(240,240,240)"; // 他の人の投稿は灰色背景
-            postElement.innerHTML =`<div class = "time">${post.time}</div><span class="id">${post.sender}</span> <span>${post.text}</span><button class="reactions-container" id="${reactionsContainerId}" onclick="submitReaction(${post.id})">反応</button>`;
+            postElement.innerHTML =`<div class = "time">${post.time}</div><span class="id">${post.sender}</span> ><button class="reactions-container" id="${reactionsContainerId}" onclick="submitReaction(${post.id})">反応</button><span>${post.text}</span`;
              }
           thread.appendChild(postElement); // メッセージを末尾に追加
           //thread.insertBefore(postElement, thread.firstChild);
@@ -151,11 +152,11 @@
 
       if(msg.sender === localStorage.getItem("visitorID")){
         postElement.style.backgroundColor = "white"; // 自分の投稿は白色背景
-        postElement.innerHTML = `<div class = "time">${msg.time}</div><span class="id">${msg.sender}</span> <span>${msg.text}</span><button class="delete_button"onclick="delete_post(${msg.id})">削除</button><button class="reactions-container" id="${reactionsContainerId}" onclick="submitReaction(${msg.id})">反応</button>`;
+        postElement.innerHTML = `<div class = "time">${msg.time}</div><span class="id">${msg.sender}</span> <button class="delete_button"onclick="delete_post(${msg.id})">削除</button><button class="reactions-container" id="${reactionsContainerId}" onclick="submitReaction(${msg.id})">反応</button><span>${msg.text}</span>`;
       }
       else{
         postElement.style.backgroundColor = "rgb(240,240,240)"; // 他の人の投稿は灰色背景
-        postElement.innerHTML = `<div class = "time">${msg.time}</div><span class="id">${msg.sender}</span> <span>${msg.text}</span><button class="reactions-container" id="${reactionsContainerId}" onclick="submitReaction(${msg.id})">反応</button>`;
+        postElement.innerHTML = `<div class = "time">${msg.time}</div><span class="id">${msg.sender}</span> <button class="reactions-container" id="${reactionsContainerId}" onclick="submitReaction(${msg.id})">反応</button><span>${msg.text}</span>`;
       }
       // 新しいメッセージを一番上に追加
       //thread.insertBefore(postElement, thread.firstChild);

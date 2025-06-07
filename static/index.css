@@ -80,14 +80,20 @@ body { font-family: "MS PGothic", sans-serif;
    .delete_button{
      position: absolute;
      right: 47%;
-     margin-top: -2%;/* marginは外側の余白を作って要素を動かす*/
-     padding:0px;/* paddingは内側の余白を作って内部の要素の位置関係を変更できる。*/
+     margin-top: -1.7%; /*marginは外側の余白を作って要素を動かす*/
+     padding:2px;/* paddingは内側の余白を作って内部の要素の位置関係を変更できる。*/
+     border:0px;
+     border-bottom: 2px solid #dcdcdc;
    }
    .reactions-container{
      position: absolute;
      right: 47%;
-     margin-top: -0.4%;
-     padding:0px;
+     /*margin-top: -0.4%;*/
+     padding:2px;
+     margin-top: 0.2%;
+     border:0px;
+     border-bottom: 2px solid #dcdcdc;
+     
    }
    .back_mainpage{
       position: fixed;
@@ -124,4 +130,13 @@ body { font-family: "MS PGothic", sans-serif;
         opacity: 0; /* 終了時: 不透明度 0 (完全に透明) */
         transform: translateY(-100px); /* 終了時: 上に80px移動 */
     }
+}
+.member_text{
+    position: fixed;
+    top: 15%;
+    left: 55%;
+    font-weight: bold;
+    color:blue;
+    z-index: 3;
+    background-color: rgb(251, 251, 251);
 }
