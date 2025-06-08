@@ -175,7 +175,7 @@ body { font-family: "MS PGothic", sans-serif;
   width: 10%;
   border-radius: 5px;
   z-index: 2;
-  padding: 15px 20px;
+  padding: 15px 5px;
   border: 0px solid rgb(99, 99, 99);
   border-bottom: 2px solid #dcdcdc;
   background-color: rgb(247, 255, 221); /* 背景色を設定 */
@@ -187,12 +187,17 @@ body { font-family: "MS PGothic", sans-serif;
   top: 30%;
   left: 100%;
   background-color: rgb(251, 251, 251);
-  border-radius: 0px;
+  border-radius: 10px;
   border:0px solid rgb(99, 99, 99);
+  color:black;
   border-bottom: 2px solid #dcdcdc;
   margin-bottom: 6px; /* 各検索結果の間に余白を追加 */
   word-wrap: break-word; /* 長い単語を折り返す */
   white-space: pre-wrap; /* 改行を保持しつつ、自動で折り返す */
+}
+.result_text:hover{
+  color:#551A8b;
+  text-decoration:underline;
 }
 .go_last_page{
   position: fixed;
