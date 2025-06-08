@@ -15,6 +15,7 @@
   </textarea><br>
   <button onclick="submitPost()"class="button">書き込む</button>
   <a class = "back_mainpage" href="/"onclick="del_member()">掲示板一覧に戻る</a>
+  <a class = "go_last_page" onclick="scrollend()">最新投稿へ</a> 
   <p class="member_text">閲覧中の人</p>
   <div id="member_bar"></div>
   <form class="search_form" id="search_form">
@@ -233,6 +234,11 @@
           capInThread.style.backgroundColor = "white"; // 検索結果の背景色を白に戻す
         }, 1000);
       }
+    }
+    function scrollend(){
+      var element = document.documentElement;
+      var bottom = element.scrollHeight - element.clientHeight;
+      window.scroll(0, bottom);
     }
     // WebSocketイベントリスナー: 新しいメッセージを受信したら表示を更新
     socket.on('new_message', function(msg) {

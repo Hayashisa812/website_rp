@@ -96,12 +96,19 @@ body { font-family: "MS PGothic", sans-serif;
      
    }
    .back_mainpage{
+      color:black;
+      text-decoration:none;
       position: fixed;
+      font-weight: bold;
       top: 10%;
       left: 55%;
       width: 10%;
       height: 7%;
    }
+    .back_mainpage:hover{
+        color:#551A8b;
+        text-decoration:underline;
+    }
    .heart {
     z-index: 100;
     position: absolute;
@@ -186,4 +193,17 @@ body { font-family: "MS PGothic", sans-serif;
   margin-bottom: 6px; /* 各検索結果の間に余白を追加 */
   word-wrap: break-word; /* 長い単語を折り返す */
   white-space: pre-wrap; /* 改行を保持しつつ、自動で折り返す */
+}
+.go_last_page{
+  position: fixed;
+  top: 10%;
+  left: 65%;
+  width: 10%;
+  height: 7%;
+  z-index: 3;
+  font-weight: bold;
+}
+.go_last_page:hover{
+  color:#551A8b;
+  text-decoration:underline;
 }
