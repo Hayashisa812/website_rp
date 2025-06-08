@@ -77,6 +77,18 @@ def del_member(board_name):
         member_store[board_name] = [m for m in member_store[board_name] if m != data['sender']]
         socketio.emit('member', member_store)
     return jsonify({'status': 'ok'})
+
+@app.route('/search/<board_name>', methods=['POST'])
+def search_messages(board_name):
+    print("searching for messages in board:", board_name)
+    filtered_messages = []
+    data = request.json
+    a = message_store[board_name]
+    for i in a:
+        if data['text'] in i['text']:
+            filtered_messages.append(i)
+    
+    return jsonify({'status': 'ok', 'messages': filtered_messages})
 if __name__ == '__main__':
     socketio.run(app, debug=True)
 

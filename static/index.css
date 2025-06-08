@@ -140,3 +140,50 @@ body { font-family: "MS PGothic", sans-serif;
     z-index: 3;
     background-color: rgb(251, 251, 251);
 }
+.search_form{
+  position: fixed;
+  top: 15%;
+  left: 82%;
+  width: 30%;
+  z-index: 3;
+}
+.text_bar{
+  background-color: rgb(251, 251, 251);
+  border-radius: 5px;
+  border:0px solid rgb(99, 99, 99);
+  border-bottom: 2px solid #dcdcdc;
+}
+.submit_button{
+  background-color: rgb(238, 238, 238);
+  border-radius: 5px;
+  border:0px;
+  font-weight: bold;
+  border-bottom: 2px solid #dcdcdc;
+}
+.result_bar{
+  position: fixed; /* 表示位置を固定 */
+  top: 20%;
+  left: 82%; /* 位置を微調整 */
+  height: 40%; /* メンバーリストの高さに合わせる */
+  width: 10%;
+  border-radius: 5px;
+  z-index: 2;
+  padding: 15px 20px;
+  border: 0px solid rgb(99, 99, 99);
+  border-bottom: 2px solid #dcdcdc;
+  background-color: rgb(247, 255, 221); /* 背景色を設定 */
+  overflow-y: auto;  /*内容が多い場合にスクロール可能にする */
+  /*box-shadow: 0 2px 4px rgba(0,0,0,0.1);  軽い影を追加 */
+
+}
+.result_text{
+  top: 30%;
+  left: 100%;
+  background-color: rgb(251, 251, 251);
+  border-radius: 0px;
+  border:0px solid rgb(99, 99, 99);
+  border-bottom: 2px solid #dcdcdc;
+  margin-bottom: 6px; /* 各検索結果の間に余白を追加 */
+  word-wrap: break-word; /* 長い単語を折り返す */
+  white-space: pre-wrap; /* 改行を保持しつつ、自動で折り返す */
+}
