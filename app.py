@@ -83,7 +83,7 @@ def search_messages(board_name):
     print("searching for messages in board:", board_name)
     filtered_messages = []
     data = request.json
-    a = message_store[board_name]
+    a = message_store.get(board_name,[])
     for i in a:
         if data['text'] in i['text']:
             filtered_messages.append(i)

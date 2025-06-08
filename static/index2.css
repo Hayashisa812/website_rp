@@ -1,0 +1,177 @@
+/* General Body and Layout Container */
+body {
+    font-family: "MS PGothic", sans-serif;
+    margin: 0;
+    height: 100vh; /* Set body height to full viewport height */
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    display: flex;
+    flex-grow: 1; /* Allow container to fill the body's height */
+    overflow: hidden; /* Prevent container from causing body scroll */
+}
+
+/* Main Content Area (Left Column) */
+main {
+    flex: 1; /* Takes up 50% of the width */
+    padding: 20px;
+    overflow-y: auto; /* Enables vertical scrolling for posts */
+    background-color: rgb(247, 255, 221);
+}
+
+.post {
+    padding: 10px;
+    margin-bottom: 10px;
+    word-break: break-word;
+    white-space: pre-wrap;
+    border-bottom: 1px solid #dcdcdc;
+    display: flex;
+    flex-direction: column;
+}
+
+.id {
+    color: blue;
+    font-weight: bold;
+}
+
+.time {
+    color: rgb(179, 179, 179);
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
+
+/* Sidebar (Right Column) */
+aside {
+    flex: 1; /* Takes up 50% of the width */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Adds space between sidebar sections */
+    background-color: #f4f7f6;
+    overflow-y: auto;
+}
+
+
+.navigation a {
+    text-decoration: none;
+    font-weight: bold;
+    color: black;
+    display: inline-block;/*aタグは初期でdisplay: inline;という性質を持つため、paddingで上下の余白を指定しても、レイアウト上の高さを広げることができないので、display: block;を追加さらにこれだと自動的に改行するのでdisplay: inline-blockに変更*/
+    padding: 20px 0px;
+}
+
+.navigation a:hover {
+    color: #551A8b;
+    text-decoration: underline;
+}
+
+.search_form, .post_form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.text_bar, .textbox {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #dcdcdc;
+    box-sizing: border-box; /* paddingを含めてwidth 100%にする */
+}
+
+.submit_button, .button {
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    background-color: rgb(238, 238, 238);
+    cursor: pointer;
+    border-bottom: 2px solid #dcdcdc;
+    align-self: flex-start; /* Aligns button to the left */
+}
+
+.member_text {
+    font-weight: bold;
+    color: blue;
+    display: inline-block;
+    margin-bottom: 10px; /* Adjust spacing */
+}
+
+.id_text {
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 10px; /* Adjust spacing */
+}
+
+#member_bar, #search_results {
+    background-color: rgb(247, 255, 221);
+    border-radius: 5px;
+    padding: 15px;
+    border-bottom: 2px solid #dcdcdc;
+    min-height: 100px; /* Give a minimum height */
+    overflow-y: auto;
+}
+
+.member, .result_text {
+    background-color: rgb(251, 251, 251);
+    border-radius: 5px;
+    border-bottom: 2px solid #dcdcdc;
+    padding: 8px;
+    margin-bottom: 6px;
+}
+
+.result_text {
+    cursor: pointer;
+}
+
+.result_text:hover {
+    color: #551A8b;
+    background-color: #e0e0e0;
+}
+
+/* --- ここからがボタンの新しいスタイル --- */
+.post-actions {
+    display: flex;
+    justify-content: flex-end; /* ボタンを右揃えにする */
+    gap: 8px; /* ボタン間のスペース */
+    margin-top: 8px; /* ボタンとテキストの間のスペース */
+}
+
+.delete_button, .reaction_button {
+    padding: 2px 10px; /* ボタンの縦と横の余白を小さくする */
+    font-size: 12px;   /* 文字を小さくする */
+    border-radius: 5px;
+    border: 2px solid #ccc;
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+.delete_button:hover, .reaction_button:hover {
+    background-color: #e0e0e0;
+}
+/* --- ここまでがボタンの新しいスタイル --- */
+
+/* Reaction Animation (No changes made) */
+.heart {
+    z-index: 100;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    animation-name: fadeUpHeart;
+    animation-duration: 1s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes fadeUpHeart {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-80px);
+    }
+}
