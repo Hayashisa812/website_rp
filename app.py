@@ -1,16 +1,34 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, g
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import time
 import random
+import sqlite3 # sqlite3をインポート
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-# 掲示板ごとのメッセージ保存
-message_store = {}
+# 変更: データベースファイルの名前を定義
+DATABASE = 'database.db'
+
 member_store = {}
-# SocketIOのセッションIDとユーザー情報を紐付けるための辞書
 sid_to_user = {}
+
+
+def get_db():
+    """リクエスト内で有効なデータベース接続を取得する。なければ作成する。"""
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+        # 辞書のように列名でアクセスできるようにする
+        db.row_factory = sqlite3.Row
+    return db
+
+@app.teardown_appcontext
+def close_connection(exception):
+    """リクエストの終了時にデータベース接続を閉じる。"""
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
 @app.route('/')
 def home():
@@ -22,30 +40,53 @@ def thread(board_name):
 
 @app.route('/messages/<board_name>')
 def get_messages(board_name):
-    return jsonify(message_store.get(board_name, []))
+    # DBからメッセージを取得
+    db = get_db()
+    cur = db.execute(
+        'SELECT * FROM messages WHERE board_name = ? ORDER BY time ASC', 
+        (board_name,)
+    )
+    messages = [dict(row) for row in cur.fetchall()]
+    return jsonify(messages)
 
 @app.route('/post/<board_name>', methods=['POST'])
 def post_message(board_name):
     data = request.json
-    msg = {
-        'id': len(message_store.get(board_name, [])),
-        'text': data['text'],
-        'sender': data['sender'],
-        'time': time.strftime('%Y-%m-%d %H:%M:%S')
-    }
-    message_store.setdefault(board_name, []).append(msg)
-    socketio.emit('new_message', msg)
+    current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+
+    # DBにメッセージを挿入
+    db = get_db()
+    db.execute(
+        'INSERT INTO messages (board_name, text, sender, time) VALUES (?, ?, ?, ?)',
+        (board_name, data['text'], data['sender'], current_time)
+        #VALUES (?, ?, ?, ?) の ? は：プレースホルダという目印で、タプルの値が、順番に?へ安全に代入される。悪意あるSQLインジェクション攻撃を完全に防ぐことが可能。
+    )
+    db.commit()
+
+    # 挿入した最新のメッセージを取得してクライアントに送信
+    cur = db.execute('SELECT * FROM messages WHERE id = last_insert_rowid()')
+    new_msg = dict(cur.fetchone())
+
+    # メッセージを特定の掲示板ルームにのみブロードキャストする
+    socketio.emit('new_message', new_msg, room=board_name)
     return jsonify({'status': 'ok'})
 
 @app.route('/delete/<board_name>', methods=['POST'])
 def delete_message(board_name):
     data = request.json
-    messages = message_store.get(board_name, [])
-    message_store[board_name] = [
-        msg for msg in messages if not (msg['id'] == data['id'] and msg['sender'] == data['sender'])
-    ]
-    socketio.emit('delete_message', data)
+
+    # DBからメッセージを削除
+    db = get_db()
+    db.execute(
+        'DELETE FROM messages WHERE id = ? AND sender = ?', 
+        (data['id'], data['sender'])
+    )
+    db.commit()
+
+    # 削除イベントを特定の掲示板ルームにのみブロードキャストする
+    socketio.emit('delete_message', data, room=board_name)
     return jsonify({'status': 'deleted'})
+
 @app.route('/reaction/<board_name>', methods=['POST'])
 def add_reaction(board_name):
     data = request.json
@@ -53,67 +94,60 @@ def add_reaction(board_name):
     msg = {
         'reaction': random_image,
         'id': data['id'],
-
     }
-    socketio.emit('reaction', msg)
+    # リアクションイベントを特定の掲示板ルームにのみブロードキャストする
+    socketio.emit('reaction', msg, room=board_name)
     return jsonify({'status': 'ok'})
+
 @socketio.on('join')
 def handle_join(data):
-    """クライアントからの参加要求を処理"""
     board_name = data['board']
     sender_id = data['sender']
     
-    # ユーザーを特定の掲示板の「ルーム」に参加させる
     join_room(board_name)
     
-    # セッションIDとユーザー情報を紐付ける
     sid_to_user[request.sid] = {'board': board_name, 'sender': sender_id}
     
-    # メンバーリストに追加
-    member_store.setdefault(board_name, []).append(sender_id)
-    member_store[board_name] = list(set(member_store[board_name]))
+    member_store.setdefault(board_name, set()).add(sender_id)
     
-    # 同じルームの全員に更新されたメンバーリストを送信
-    emit('member_update', {'members': member_store.get(board_name, [])}, room=board_name)
-    print(f"User {sender_id} joined {board_name}. Current members: {member_store[board_name]}")
+    # setをリストに変換して送信
+    emit('member_update', {'members': list(member_store.get(board_name, []))}, room=board_name)
+    print(f"User {sender_id} joined {board_name}. Current members: {list(member_store.get(board_name, []))}")
 
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    """クライアントの切断を処理"""
-    # 切断したクライアントの情報を取得
     user_info = sid_to_user.pop(request.sid, None)
     
     if user_info:
         board_name = user_info['board']
         sender_id = user_info['sender']
         
-        # 該当のルームから退出
         leave_room(board_name)
         
-        # メンバーリストから削除
         if board_name in member_store and sender_id in member_store[board_name]:
             member_store[board_name].remove(sender_id)
-            # もしボードに誰もいなくなったら、そのボードのキーごと削除しても良い
             if not member_store[board_name]:
                 del member_store[board_name]
         
-        # 同じルームの残りのメンバーに更新されたメンバーリストを送信
-        emit('member_update', {'members': member_store.get(board_name, [])}, room=board_name)
+        emit('member_update', {'members': list(member_store.get(board_name, []))}, room=board_name)
         print(f"User {sender_id} disconnected from {board_name}. Current members: {member_store.get(board_name, [])}")
 
 
 @app.route('/search/<board_name>', methods=['POST'])
 def search_messages(board_name):
-    print("searching for messages in board:", board_name)
-    filtered_messages = []
     data = request.json
-    a = message_store.get(board_name,[])
-    for i in a:
-        if data['text'] in i['text']:
-            filtered_messages.append(i)
+    search_term = f"%{data['text']}%" # 部分一致検索のためのキーワード%で囲むとLIKE検索（同じ要素が含まれている文字を探す）が可能になる
+
+    # 変更: DBでLIKE検索を実行
+    db = get_db()
+    cur = db.execute(
+        'SELECT * FROM messages WHERE board_name = ? AND text LIKE ? ORDER BY time ASC',
+        (board_name, search_term)
+    )
+    filtered_messages = [dict(row) for row in cur.fetchall()]
     
     return jsonify({'status': 'ok', 'messages': filtered_messages})
+
 if __name__ == '__main__':
     socketio.run(app, debug=True)
-

@@ -1,0 +1,54 @@
+sqlite3 database.db サーバー起動
+
+sqlite>に入ると対話モードに
+
+.tables	データベース内に存在するテーブルの一覧を表示する。
+.schema テーブル名	指定したテーブルの構造（どのような列があるか）を表示する。
+.help	利用可能なドットコマンドの一覧を表示する。
+.exitまたは.quit	sqlite3の対話モードを終了して、元のターミナルに戻る。
+
+
+1. INSERT （データの追加）
+
+    基本構文:
+        INSERT INTO テーブル名 (列1, 列2, ...) VALUES (値1, 値2, ...);
+
+    INSERT INTO messages (board_name, text, sender, time) VALUES （'general', 'これはSQLからの直接テスト投稿です。', 'TestUser', '2025-06-09 17:40:00'）; (SQLを実行してデータを追加)
+
+2. SELECT （データの取得）
+    SELECT * FROM messages; （SQL文を実行し、データを取得（*は全てという意味））
+    SELECT sender, text FROM messages; （だとsenderとtextだけを取得する）
+    
+    WHERE句を使ったデータの絞り込み
+
+        tech掲示板の投稿だけを表示する
+
+            SELECT * FROM messages WHERE board_name = 'tech';
+
+        特定のユーザー(AbCdEfGh)の投稿だけを表示する
+
+            SELECT * FROM messages WHERE sender = 'AbCdEfGh';
+        
+        投稿文に「テスト」という単語が含まれるものを検索する (LIKE)
+
+            SELECT * FROM messages WHERE text LIKE '%テスト%';(%は「0文字以上の任意の文字列」を意味するワイルドカード)
+        
+        最新の投稿を5件だけ表示する
+
+            SELECT * FROM messages ORDER BY time DESC LIMIT 5;(LIMITを使うと、取得する行数を制限できる)
+
+3. UPDATE （データの更新）
+
+    基本構文:
+        UPDATE テーブル名 SET 更新する列 = 新しい値 WHERE 条件;
+
+    idが1の投稿のtextを書き換える。
+        UPDATE messages SET text = 'この投稿はUPDATE文で更新されました。' WHERE id = 1;
+
+4. DELETE （データの削除）
+
+    基本構文:
+        DELETE FROM テーブル名 WHERE 条件;
+    
+    idが1の投稿を削除する。
+        DELETE FROM messages WHERE id = 1;
