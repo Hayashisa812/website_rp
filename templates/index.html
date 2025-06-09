@@ -17,7 +17,7 @@
       <aside>
   
         <div class="navigation">
-          <a class = "back_mainpage" href="/"onclick="del_member()">掲示板一覧に戻る</a>
+          <a class = "back_mainpage" href="/">掲示板一覧に戻る</a>
           <a class = "go_last_page" onclick="scrollend()">最新投稿へ</a> 
         </div>
         
@@ -85,47 +85,10 @@
           .then(data => {
             displayMessages(data);
           });
-        add_member();
+        
       };
-      function add_member(){
-        let visitorID = localStorage.getItem("visitorID");
-        const thread = document.getElementById("id_text");
-        thread.innerHTML = `<p class="id_text">あなたのID: <span style="color:blue;">${visitorID}</span></p>`;// IDを表示する
-        if (!visitorID) {
-          visitorID = Math.random().toString(36).substring(2, 10);
-          localStorage.setItem("visitorID", visitorID);
-        }
-        socket.on("connect", () => {// 接続が確立された時にメンバー情報を送るようにする
-          console.log("✅ Socket.IO connected, now join room:", boardName);
-          socket.emit("joinRoom", boardName);
-
-            fetch(`/member/${boardName}`, {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({sender:visitorID}),
-              })
-              .then(res => res.json())
-              .then(data => {
-                // サーバーがWebSocketを通じてメンバー追加イベントをブロードキャストするので、ここでは何もしない
-                console.log("メンバー情報を送信しました:", data);
-              });
-          });
-      }
-      function del_member(){
-        let visitorID = localStorage.getItem("visitorID");
-        if (visitorID) {
-          fetch(`/del_member/${boardName}`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({sender:visitorID}),
-          })
-          .then(res => res.json())
-          .then(data => {
-            // サーバーがWebSocketを通じてメンバー削除イベントをブロードキャストするので、ここでは何もしない
-            console.log("メンバー情報を削除しました:", data);
-          });
-        }
-      }
+      
+      
       function submitPost() {
         const inputElement = document.getElementById("input");
         const input = inputElement.value;
@@ -306,22 +269,33 @@
         });
       })
 
-      socket.on('member',function(date){
-      
-        console.log("メンバーが追加されました:");
+      socket.on("connect", () => {
+          console.log("✅ Socket.IO connected");
+          let visitorID = localStorage.getItem("visitorID");
+          if (!visitorID) {
+              visitorID = Math.random().toString(36).substring(2, 10);
+              localStorage.setItem("visitorID", visitorID);
+          }
+          
+          // IDを表示
+          const idTextElement = document.getElementById("id_text");
+          idTextElement.innerHTML = `<p class="id_text">あなたのID: <span style="color:blue;">${visitorID}</span></p>`;
+          
+          // サーバーに参加(join)イベントを送信
+          socket.emit("join", { board: boardName, sender: visitorID });
+      });
+      socket.on('member_update', function(data) {
+        console.log("メンバーリストが更新されました:", data.members);
         const thread = document.getElementById("member_bar");
-      
-        thread.innerHTML = '';
+        thread.innerHTML = ''; // 一旦クリア
 
-        date[boardName].forEach(memberId => {
+        data.members.forEach(memberId => {
           const postElement = document.createElement("div");
-          postElement.className = "member"; // スタイルを適用するためのクラス
-          postElement.textContent = memberId; // テキストとしてIDを設定
+          postElement.className = "member";
+          postElement.textContent = memberId;
           thread.appendChild(postElement);
         });
-        
       });
-
       
       
 

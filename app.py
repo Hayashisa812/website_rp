@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import time
 import random
 
@@ -9,6 +9,8 @@ socketio = SocketIO(app)
 # 掲示板ごとのメッセージ保存
 message_store = {}
 member_store = {}
+# SocketIOのセッションIDとユーザー情報を紐付けるための辞書
+sid_to_user = {}
 
 @app.route('/')
 def home():
@@ -55,28 +57,51 @@ def add_reaction(board_name):
     }
     socketio.emit('reaction', msg)
     return jsonify({'status': 'ok'})
-@app.route('/member/<board_name>', methods=['POST'])
-
-
-def get_member(board_name):
-    data = request.json
-    #print(data['sender'])
-    member_store.setdefault(board_name, []).append(data['sender'])
-    member_store[board_name] = list(set(member_store[board_name]))
-    print(member_store," member_store")
+@socketio.on('join')
+def handle_join(data):
+    """クライアントからの参加要求を処理"""
+    board_name = data['board']
+    sender_id = data['sender']
     
-                
-    socketio.emit('member', member_store)
+    # ユーザーを特定の掲示板の「ルーム」に参加させる
+    join_room(board_name)
+    
+    # セッションIDとユーザー情報を紐付ける
+    sid_to_user[request.sid] = {'board': board_name, 'sender': sender_id}
+    
+    # メンバーリストに追加
+    member_store.setdefault(board_name, []).append(sender_id)
+    member_store[board_name] = list(set(member_store[board_name]))
+    
+    # 同じルームの全員に更新されたメンバーリストを送信
+    emit('member_update', {'members': member_store.get(board_name, [])}, room=board_name)
+    print(f"User {sender_id} joined {board_name}. Current members: {member_store[board_name]}")
 
-    return jsonify({'status': 'ok'})
-@app.route('/del_member/<board_name>', methods=['POST'])
-def del_member(board_name):
-    data = request.json
-    print(data['sender'])
-    if board_name in member_store:
-        member_store[board_name] = [m for m in member_store[board_name] if m != data['sender']]
-        socketio.emit('member', member_store)
-    return jsonify({'status': 'ok'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """クライアントの切断を処理"""
+    # 切断したクライアントの情報を取得
+    user_info = sid_to_user.pop(request.sid, None)
+    
+    if user_info:
+        board_name = user_info['board']
+        sender_id = user_info['sender']
+        
+        # 該当のルームから退出
+        leave_room(board_name)
+        
+        # メンバーリストから削除
+        if board_name in member_store and sender_id in member_store[board_name]:
+            member_store[board_name].remove(sender_id)
+            # もしボードに誰もいなくなったら、そのボードのキーごと削除しても良い
+            if not member_store[board_name]:
+                del member_store[board_name]
+        
+        # 同じルームの残りのメンバーに更新されたメンバーリストを送信
+        emit('member_update', {'members': member_store.get(board_name, [])}, room=board_name)
+        print(f"User {sender_id} disconnected from {board_name}. Current members: {member_store.get(board_name, [])}")
+
 
 @app.route('/search/<board_name>', methods=['POST'])
 def search_messages(board_name):
