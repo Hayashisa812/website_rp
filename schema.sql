@@ -7,5 +7,6 @@ CREATE TABLE messages (
   board_name TEXT NOT NULL,           -- 掲示板の名前 (general, techなど)nullは空白なし
   text TEXT NOT NULL,                   -- 投稿内容
   sender TEXT NOT NULL,                 -- 投稿者のID
-  time TEXT NOT NULL                    -- 投稿日時
+  time TEXT NOT NULL,
+  reply_to_id INTEGER
 );

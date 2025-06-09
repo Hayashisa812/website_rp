@@ -49,6 +49,32 @@ def get_messages(board_name):
     messages = [dict(row) for row in cur.fetchall()]
     return jsonify(messages)
 
+# --- ▼▼▼ここから修正▼▼▼ ---
+@app.route('/reply/<board_name>',methods=['POST'])
+def handle_reply(board_name):
+    data = request.json
+    current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+
+    # 返信先のIDをテキストに含める
+    reply_text = f">> {data['id']}\n{data['text']}"
+
+    # DBにメッセージを挿入
+    db = get_db()
+    db.execute(
+       'INSERT INTO messages (board_name, text, sender, time, reply_to_id) VALUES (?, ?, ?, ?, ?)',
+        (board_name, reply_text, data['sender'], current_time, data['id'])
+    )
+    db.commit()
+
+    # 挿入した最新のメッセージを取得してクライアントに送信
+    cur = db.execute('SELECT * FROM messages WHERE id = last_insert_rowid()')
+    new_msg = dict(cur.fetchone())
+
+    # ★変更点：通常の 'new_message' イベントとしてブロードキャストする
+    socketio.emit('new_message', new_msg, room=board_name)
+    return jsonify({'status': 'ok'})
+# --- ▲▲▲ここまで修正▲▲▲ ---
+
 @app.route('/post/<board_name>', methods=['POST'])
 def post_message(board_name):
     data = request.json
@@ -59,7 +85,6 @@ def post_message(board_name):
     db.execute(
         'INSERT INTO messages (board_name, text, sender, time) VALUES (?, ?, ?, ?)',
         (board_name, data['text'], data['sender'], current_time)
-        #VALUES (?, ?, ?, ?) の ? は：プレースホルダという目印で、タプルの値が、順番に?へ安全に代入される。悪意あるSQLインジェクション攻撃を完全に防ぐことが可能。
     )
     db.commit()
 
@@ -137,7 +162,7 @@ def handle_disconnect():
 @app.route('/search/<board_name>', methods=['POST'])
 def search_messages(board_name):
     data = request.json
-    search_term = f"%{data['text']}%" # 部分一致検索のためのキーワード%で囲むとLIKE検索（同じ要素が含まれている文字を探す）が可能になる
+    search_term = f"%{data['text']}%"
 
     # 変更: DBでLIKE検索を実行
     db = get_db()

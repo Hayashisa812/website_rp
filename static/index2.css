@@ -23,7 +23,7 @@ main {
 
 .post {
     position: relative;
-    padding: 10px;
+    padding: 20px;
     margin-bottom: 10px;
     word-break: break-word;
     white-space: pre-wrap;
@@ -31,6 +31,8 @@ main {
     display: flex;
     flex-direction: column;
 }
+
+
 
 .id {
     color: blue;
@@ -140,7 +142,7 @@ aside {
     margin-top: 8px; /* ボタンとテキストの間のスペース */
 }
 
-.delete_button, .reaction_button {
+.delete_button, .reaction_button,.reply_button {
     padding: 2px 10px; /* ボタンの縦と横の余白を小さくする */
     font-size: 12px;   /* 文字を小さくする */
     border-radius: 5px;

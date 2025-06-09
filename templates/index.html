@@ -47,226 +47,191 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
 
     <script>
-
       // Socket.IO クライアントを初期化
       const socket = io();
       const boardName = window.location.pathname.split("/").pop();
       
-      // Function to display messages 
+  
+      function createPostElement(post) {
+        const postElement = document.createElement("div");
+        postElement.className = "post"; // 'reply' クラスは不要
+        postElement.dataset.messageId = post.id;
+        postElement.dataset.sender = post.sender;
+
+        const reactionsContainerId = `reactions-for-${post.id}`;
+        
+        const reactionButton = `<button class="reaction_button" id="${reactionsContainerId}" onclick="submitReaction(${post.id})">反応</button>`;
+        
+        const replyButton = `<button class="reply_button" onclick="reply(${post.id})">返信</button>`;
+        let buttonsHtml = '';
+
+        if (post.sender === localStorage.getItem("visitorID")) {
+          postElement.style.backgroundColor = "white";
+          const deleteButton = `<button class="delete_button" onclick="delete_post(${post.id})">削除</button>`;
+          buttonsHtml = `<div class="post-actions">${deleteButton}${reactionButton}${replyButton}</div>`;
+        } else {
+          postElement.style.backgroundColor = "rgb(240,240,240)";
+          buttonsHtml = `<div class="post-actions">${reactionButton}${replyButton}</div>`;
+        }
+        
+        postElement.innerHTML = `<div class="time">${post.time}</div><span class="id">${post.id}:<span></span>${post.sender}</span><span>${post.text}</span><br>${buttonsHtml}`;
+        
+        return postElement;
+      }
+
       function displayMessages(messages) {
         const thread = document.getElementById("thread");
-        thread.innerHTML = ''; // Clear current messages
-        // メッセージをそのまま順番に処理
+        thread.innerHTML = ''; // 現在のメッセージをクリア
+
+        // すべてのメッセージをループして、スレッドの直下に追加
         messages.forEach(post => {
-            const postElement = document.createElement("div");
-            postElement.className = "post";
-            postElement.dataset.messageId = post.id; // 削除のためにIDをカスタムデータ属性として追加
-            postElement.dataset.sender = post.sender; // 削除のためにsenderをカスタムデータ属性として追加
-            const reactionsContainerId = `reactions-for-${post.id}`;
-            if (post.sender === localStorage.getItem("visitorID")) {
-              postElement.style.backgroundColor = "white"; // 自分の投稿は白色背景
-              postElement.innerHTML =  `<div class = "time">${post.time}</div><span class="id">${post.sender}</span><span>${post.text}</span><br><div class="post-actions"><button class="delete_button"onclick="delete_post(${post.id})">削除</button><button class="reaction_button" id="${reactionsContainerId}" onclick="submitReaction(${post.id})">反応</button></div>`;
-              ;
-            } else {
-              postElement.style.backgroundColor = "rgb(240,240,240)"; // 他の人の投稿は灰色背景
-              postElement.innerHTML =`<div class = "time">${post.time}</div><span class="id">${post.sender}</span><span>${post.text}</span><br><div class="post-actions"><button class="reaction_button" id="${reactionsContainerId}" onclick="submitReaction(${post.id})">反応</button></div>`;
-              }
-            thread.appendChild(postElement); // メッセージを末尾に追加
-            //thread.insertBefore(postElement, thread.firstChild);
+            const postElement = createPostElement(post);
+            thread.appendChild(postElement);
         });
       }
 
-
-      // Fetch and display messages on page load (変更なし。初回読み込み時に全メッセージを取得)
+      
+      // Fetch and display messages on page load
       window.onload = function() {
-
         fetch(`/messages/${boardName}`)
           .then(res => res.json())
           .then(data => {
             displayMessages(data);
           });
-        
       };
-      
       
       function submitPost() {
         const inputElement = document.getElementById("input");
         const input = inputElement.value;
+        if (!input.trim()) return; // 空の投稿は無視
         let visitorID =localStorage.getItem("visitorID");
         if (!visitorID) {
-        visitorID = Math.random().toString(36).substring(2, 10); // ランダムな8桁IDを生成
-        localStorage.setItem("visitorID", visitorID); // 保存
+          visitorID = Math.random().toString(36).substring(2, 10);
+          localStorage.setItem("visitorID", visitorID);
         }
-        console.log(visitorID);
-
-        // Clear input field
         inputElement.value = "";
-
-        // Send post to the server (WebSocketを使用するため、メッセージ取得は不要)
         fetch(`/post/${boardName}`, {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({text: input,sender:visitorID})
-        })
-        .then(res => res.json())
-        .then(data => {
-          // サーバーがWebSocketを通じてメッセージをブロードキャストするので、ここでは何もしない
-          // displayMessages() を直接呼び出す必要はなくなります
         });
       }
+
       function delete_post(id){
         fetch(`/delete/${boardName}`, {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({id:id,sender:localStorage.getItem("visitorID")})
-        })
-        .then(res => res.json())
-        .then(data => {
-          // サーバーがWebSocketを通じて削除イベントをブロードキャストするので、ここでは何もしない
         });
       }
+
       function submitReaction(postID){
         fetch(`/reaction/${boardName}`, {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({sender:localStorage.getItem("visitorID"), id:postID}),
-    
-        })
-
+        });
       }
+      
+      
+      function reply(postID) {
+        const mainTextarea = document.getElementById('input');
+        // 既存のテキストの先頭に引用を追加し、カーソルを末尾に移動
+        mainTextarea.value = `>> ${postID}\n` + mainTextarea.value;
+        mainTextarea.focus(); // テキストエリアにフォーカスを当てる
+        
+       
+        //alert(`投稿ID: ${postID} への返信を、下のメイン投稿欄に準備しました。`);
+      }
+
+     
       function search_messges(){
         const input = document.getElementById('search_input');
         const text = input.value;
         const resultContainer = document.getElementById('search_results');
         if (!text) {
-          resultContainer.innerHTML = ''; // 検索結果をクリア
+          resultContainer.innerHTML = '';
           return;
         }
-
         fetch(`/search/${boardName}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          // サーバーが期待する { "text": "キーワード" } の形式で送信
           body: JSON.stringify({ 'text': text }) 
         })
         .then(res => res.json())
         .then(data => {
           resultContainer.innerHTML = ''; 
-          if (data.messages && data.messages.length > 0) {//メッセージがあり、一文字より長かったら
+          if (data.messages && data.messages.length > 0) {
             data.messages.forEach(post => {
               const postElement = document.createElement("div");
-              postElement.className = "result_text"; // CSSクラス名を修正（任意）
-              postElement.dataset.messageId = post.id; // 削除のためにIDをカスタムデータ属性として追加
-              postElement.onclick = function() {
-                // scrollToPost関数に投稿IDと、クリックされた要素自身(this)を渡します
-                scrollToPost(post.id, this);
-              };
-              postElement.innerHTML = `[${post.time}]<span style="color:blue;">${post.sender}</span> ${post.text}</span>`; // 投稿のIDをクリックでスクロール
+              postElement.className = "result_text";
+              postElement.dataset.messageId = post.id;
+              postElement.onclick = function() { scrollToPost(post.id, this); };
+              postElement.innerHTML = `[${post.time}]<span style="color:blue;">${post.sender}</span> ${post.text}</span>`;
               resultContainer.appendChild(postElement);
             });
           } else {
             resultContainer.innerHTML = '<p>該当するメッセージはありませんでした。</p>';
           }
         })
-        .catch(error => {
-          console.error('Search failed:', error);
-          resultContainer.innerHTML = '<p>検索中にエラーが発生しました。</p>';
-        });
-            
+        .catch(error => { console.error('Search failed:', error); });
       }
-      function scrollTo_and_change_color(messageId) {
-        scrollToPost(messageId);
-        // クリックされた投稿の背景色を一時的に変更
-        // ページの先頭にスムーズにスクロール
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+
       function scrollToPost(messageId, postElement) {
-        // messageId: クリックされた投稿のID
-        // postElement: クリックされた投稿の要素（data-message-id属性を持つ）
-        // 1. メインスレッドから、クリックされた投稿と同じIDを持つ要素を探す。
-        //    投稿要素には `data-message-id` という目印がある。
         const postInThread = document.querySelector(`.post[data-message-id='${messageId}']`);
-        const capInThread = postElement;
-        // 2. 要素が見つかった場合
         if (postInThread) {
-          // 3. その要素の位置までページをスムーズにスクロール。
           postInThread.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-          // 4. 一時的に背景色を変更
           postInThread.style.transition = 'background-color 0.5s';
-          postInThread.style.backgroundColor = '#E0FF00'; // 明るい黄色に変更
-          capInThread.style.transition = 'background-color 0.5s';
-          capInThread.style.backgroundColor = '#E0FF00'; // 明るい黄色に変更
-
-          // 5. 1秒後にもとの背景色に戻す。
+          postInThread.style.backgroundColor = '#E0FF00';
+          postElement.style.transition = 'background-color 0.5s';
+          postElement.style.backgroundColor = '#E0FF00';
           setTimeout(() => {
             const originalColor = postInThread.dataset.sender === localStorage.getItem("visitorID") ? "white" : "rgb(240,240,240)";
             postInThread.style.backgroundColor = originalColor;
-          }, 1000);
-          setTimeout(() => {
-            capInThread.style.backgroundColor = "white"; // 検索結果の背景色を白に戻す
+            postElement.style.backgroundColor = "white";
           }, 1000);
         }
       }
-      function scrollend(){
-      // スクロールさせたい対象であるmain要素を取得します
-      const mainArea = document.querySelector('main');
 
-      // mainAreaが見つかった場合のみ、処理を実行します
-      if (mainArea) {
-        // scrollTopプロパティに、要素のスクロール可能な高さの最大値を設定することで一番下までスクロールさせます
-        mainArea.scrollTop = mainArea.scrollHeight;
+      function scrollend(){
+        const mainArea = document.querySelector('main');
+        if (mainArea) { mainArea.scrollTop = mainArea.scrollHeight; }
       }
-    }
-      // WebSocketイベントリスナー: 新しいメッセージを受信したら表示を更新
+
+      // --- ▼▼▼ここから修正▼▼▼ ---
+
+      // WebSocket: New message event (返信もこのイベントで処理される)
       socket.on('new_message', function(msg) {
         const thread = document.getElementById("thread");
-        const postElement = document.createElement("div");
-        postElement.className = "post";
-        postElement.dataset.messageId = msg.id; // 削除のためにIDをカスタムデータ属性として追加
-        postElement.dataset.sender = msg.sender; // 削除のためにsenderをカスタムデータ属性として追加
-        const reactionsContainerId = `reactions-for-${msg.id}`;
-        
-
-        if(msg.sender === localStorage.getItem("visitorID")){
-          postElement.style.backgroundColor = "white"; // 自分の投稿は白色背景
-          postElement.innerHTML = `<div class = "time">${msg.time}</div><span class="id">${msg.sender}</span><span>${msg.text}</span><br><div class="post-actions"><button class="delete_button"onclick="delete_post(${msg.id})">削除</button><button class="reaction_button" id="${reactionsContainerId}" onclick="submitReaction(${msg.id})">反応</button><div>`;
-        }
-        else{
-          postElement.style.backgroundColor = "rgb(240,240,240)"; // 他の人の投稿は灰色背景
-          postElement.innerHTML = `<div class = "time">${msg.time}</div><span class="id">${msg.sender}</span><span>${msg.text}</span><br><div class="post-actions"><button class="reaction_button" id="${reactionsContainerId}" onclick="submitReaction(${msg.id})">反応</button></div>`;
-        }
-        // 新しいメッセージを一番上に追加
-        //thread.insertBefore(postElement, thread.firstChild);
-        thread.appendChild(postElement); // メッセージを末尾に追加
+        const postElement = createPostElement(msg);
+        thread.appendChild(postElement);
       });
 
-      // WebSocketイベントリスナー: メッセージ削除を受信したら表示から削除
+      // ★変更点： 'reply_message' イベントのハンドラは不要なため削除
+      // socket.on('reply_message', function(msg) { ... });
+
+      // --- ▲▲▲ここまで修正▲▲▲ ---
+
+      // WebSocket: Delete message event
       socket.on('delete_message', function(data) {
-          const thread = document.getElementById("thread");
-          const posts = thread.querySelectorAll('.post');
+          const posts = document.querySelectorAll('.post');
           posts.forEach(postElement => {
-              // dataset.messageIdとdataset.senderが文字列として比較されるため、数値型に変換
               if (parseInt(postElement.dataset.messageId) === data.id && postElement.dataset.sender === data.sender) {
                   postElement.remove();
               }
           });
       });
+      
       socket.on('reaction',function(data){
         const thread = document.getElementById(`reactions-for-${data.id}`);
-        const postElement_div = document.createElement("div");
         const postElement = document.createElement("img");
-        postElement.src = data.reaction; // 'date.reaction' から 'data.reaction' に修正
+        postElement.src = data.reaction;
         postElement.alt = "Reaction";
-        postElement.className = "heart"; // style.css で定義されたアニメーションクラス
+        postElement.className = "heart";
         postElement.style.width = "30px";
         postElement.style.height = "30px";
         thread.appendChild(postElement);
-        postElement.addEventListener('animationend', () => {
-          // アニメーションが終了したら、親の div (postElement) を削除
-          postElement.remove();
-          console.log("リアクション要素を削除しました。"); // 確認用ログ
-        });
+        postElement.addEventListener('animationend', () => { postElement.remove(); });
       })
 
       socket.on("connect", () => {
@@ -276,19 +241,14 @@
               visitorID = Math.random().toString(36).substring(2, 10);
               localStorage.setItem("visitorID", visitorID);
           }
-          
-          // IDを表示
           const idTextElement = document.getElementById("id_text");
           idTextElement.innerHTML = `<p class="id_text">あなたのID: <span style="color:blue;">${visitorID}</span></p>`;
-          
-          // サーバーに参加(join)イベントを送信
           socket.emit("join", { board: boardName, sender: visitorID });
       });
-      socket.on('member_update', function(data) {
-        console.log("メンバーリストが更新されました:", data.members);
-        const thread = document.getElementById("member_bar");
-        thread.innerHTML = ''; // 一旦クリア
 
+      socket.on('member_update', function(data) {
+        const thread = document.getElementById("member_bar");
+        thread.innerHTML = '';
         data.members.forEach(memberId => {
           const postElement = document.createElement("div");
           postElement.className = "member";
@@ -296,9 +256,6 @@
           thread.appendChild(postElement);
         });
       });
-      
-      
-
     </script>
   </body>
 </html>
