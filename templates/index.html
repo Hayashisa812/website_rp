@@ -139,6 +139,11 @@
         // 既存のテキストの先頭に引用を追加し、カーソルを末尾に移動
         mainTextarea.value = `>> ${postID}\n` + mainTextarea.value;
         mainTextarea.focus(); // テキストエリアにフォーカスを当てる
+        fetch(`/reply/${boardName}`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({id: postID, sender: localStorage.getItem("visitorID")})
+        });
         
        
         //alert(`投稿ID: ${postID} への返信を、下のメイン投稿欄に準備しました。`);

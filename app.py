@@ -49,7 +49,7 @@ def get_messages(board_name):
     messages = [dict(row) for row in cur.fetchall()]
     return jsonify(messages)
 
-# --- ▼▼▼ここから修正▼▼▼ ---
+
 @app.route('/reply/<board_name>',methods=['POST'])
 def handle_reply(board_name):
     data = request.json
@@ -73,7 +73,7 @@ def handle_reply(board_name):
     # ★変更点：通常の 'new_message' イベントとしてブロードキャストする
     socketio.emit('new_message', new_msg, room=board_name)
     return jsonify({'status': 'ok'})
-# --- ▲▲▲ここまで修正▲▲▲ ---
+
 
 @app.route('/post/<board_name>', methods=['POST'])
 def post_message(board_name):
