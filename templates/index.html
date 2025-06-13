@@ -25,22 +25,21 @@
           <input class="text_bar"type="text"name="text"id="search_input"size="25"placeholder="キーワード検索">
           <input class="submit_button"onclick="search_messges()" type="button" value="Search">
         </form>
-        
-        
-        
+              
         <div id="search_results"class="result_bar"></div>
+
         <div>
           <p class="member_text">閲覧中の人</p>
           <p id="id_text"class="id_text"></p>
           <div id="member_bar"></div>
         </div>
+
         <div class="post_form">
           <textarea id="input" class="textbox"placeholder="書き込む内容" ></textarea>
           <button onclick="submitPost()"class="button">書き込む</button>
         </div>
         
       </aside>
-      
       
     </div>
     
@@ -51,7 +50,6 @@
       const socket = io();
       const boardName = window.location.pathname.split("/").pop();
       
-  
       function createPostElement(post) {
         const postElement = document.createElement("div");
         postElement.className = "post"; // 'reply' クラスは不要
@@ -90,7 +88,6 @@
         });
       }
 
-      
       // Fetch and display messages on page load
       window.onload = function() {
         fetch(`/messages/${boardName}`)
@@ -133,10 +130,10 @@
         });
       }
       
-      
       function reply(postID) {
         const mainTextarea = document.getElementById('input');
         // 既存のテキストの先頭に引用を追加し、カーソルを末尾に移動
+        mainTextarea.value = "";//一度空にする
         mainTextarea.value = `>> ${postID}\n` + mainTextarea.value;
         mainTextarea.focus(); // テキストエリアにフォーカスを当てる
         fetch(`/reply/${boardName}`, {
@@ -144,12 +141,8 @@
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({id: postID, sender: localStorage.getItem("visitorID")})
         });
-        
-       
-        //alert(`投稿ID: ${postID} への返信を、下のメイン投稿欄に準備しました。`);
       }
 
-     
       function search_messges(){
         const input = document.getElementById('search_input');
         const text = input.value;
@@ -203,21 +196,12 @@
         if (mainArea) { mainArea.scrollTop = mainArea.scrollHeight; }
       }
 
-      // --- ▼▼▼ここから修正▼▼▼ ---
-
-      // WebSocket: New message event (返信もこのイベントで処理される)
       socket.on('new_message', function(msg) {
         const thread = document.getElementById("thread");
         const postElement = createPostElement(msg);
         thread.appendChild(postElement);
       });
 
-      // ★変更点： 'reply_message' イベントのハンドラは不要なため削除
-      // socket.on('reply_message', function(msg) { ... });
-
-      // --- ▲▲▲ここまで修正▲▲▲ ---
-
-      // WebSocket: Delete message event
       socket.on('delete_message', function(data) {
           const posts = document.querySelectorAll('.post');
           posts.forEach(postElement => {

@@ -2,7 +2,7 @@
 body {
     font-family: "MS PGothic", sans-serif;
     margin: 0;
-    height: 100vh; /* Set body height to full viewport height */
+    height: 100vh; /* ボディの高さをビューポートの高さのマックスにする */
     display: flex;
     flex-direction: column;
 }
@@ -15,7 +15,7 @@ body {
 
 /* Main Content Area (Left Column) */
 main {
-    flex: 1; /* Takes up 50% of the width */
+    flex: 1; /* 50%の横幅 */
     padding: 20px;
     overflow-y: auto; /* Enables vertical scrolling for posts */
     background-color: rgb(247, 255, 221);
@@ -48,26 +48,55 @@ main {
 /* Sidebar (Right Column) */
 aside {
     flex: 1; /* Takes up 50% of the width */
-    padding: 20px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Adds space between sidebar sections */
+    /*gap: 15px; /* Adds space between sidebar sections */
     background-color: #f4f7f6;
     overflow-y: auto;
 }
 
+.navigation {
+     /* Flexboxを適用して横並びにする */
+     display: flex;
 
+     /* 要素の折り返しを禁止する ★★★ */
+     flex-wrap: nowrap;
+     /* リストの黒丸（・）を消す */
+     list-style: none;
+ 
+     /* ブラウザデフォルトの余白をリセット */
+     margin: 0;
+     padding: 10px 0;
+    
+}
+@media (max-width: 600px){
+    .navigation {
+        /* Flexboxを適用して横並びにする */
+        flex-direction: column;
+        /* リストの黒丸（・）を消す */
+        list-style: none;
+        /* ブラウザデフォルトの余白をリセット */
+        margin: 0;
+        padding: 0px 0;
+    }
+}
 .navigation a {
+    
+    list-style: none;
     text-decoration: none;
     font-weight: bold;
     color: black;
-    display: inline-block;/*aタグは初期でdisplay: inline;という性質を持つため、paddingで上下の余白を指定しても、レイアウト上の高さを広げることができないので、display: block;を追加さらにこれだと自動的に改行するのでdisplay: inline-blockに変更*/
-    padding: 20px 0px;
+    padding: 20px 20px;
+    background-color: #f7f6f4;
+    border-left: 1px solid #e1e1e1;  /* 左側に1pxの黒い実線 */
+    border-right: 1px solid #e1e1e1; /* 右側に1pxの黒い実線 */
 }
 
 .navigation a:hover {
     color: #551A8b;
     text-decoration: underline;
+    background-color: #e0e0e0; /* ホバー時の背景色 */
 }
 
 .search_form, .post_form {

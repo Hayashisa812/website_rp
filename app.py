@@ -70,7 +70,7 @@ def handle_reply(board_name):
     cur = db.execute('SELECT * FROM messages WHERE id = last_insert_rowid()')
     new_msg = dict(cur.fetchone())
 
-    # ★変更点：通常の 'new_message' イベントとしてブロードキャストする
+    # 'new_message' イベントとしてブロードキャストする
     socketio.emit('new_message', new_msg, room=board_name)
     return jsonify({'status': 'ok'})
 
@@ -140,14 +140,13 @@ def handle_join(data):
     print(f"User {sender_id} joined {board_name}. Current members: {list(member_store.get(board_name, []))}")
 
 
-@socketio.on('disconnect')
+@socketio.on('disconnect')#切断時の実行
 def handle_disconnect():
     user_info = sid_to_user.pop(request.sid, None)
     
     if user_info:
         board_name = user_info['board']
         sender_id = user_info['sender']
-        
         leave_room(board_name)
         
         if board_name in member_store and sender_id in member_store[board_name]:
@@ -162,9 +161,9 @@ def handle_disconnect():
 @app.route('/search/<board_name>', methods=['POST'])
 def search_messages(board_name):
     data = request.json
-    search_term = f"%{data['text']}%"
 
-    # 変更: DBでLIKE検索を実行
+    search_term = f"%{data['text']}%"#DBでLIKE検索を実行
+
     db = get_db()
     cur = db.execute(
         'SELECT * FROM messages WHERE board_name = ? AND text LIKE ? ORDER BY time ASC',
