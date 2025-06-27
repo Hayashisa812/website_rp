@@ -36,7 +36,18 @@
 
         <div class="post_form">
           <textarea id="input" class="textbox"placeholder="書き込む内容" ></textarea>
-          <button onclick="submitPost()"class="button">書き込む</button>
+          <div>
+            <button onclick="submitPost()"class="button">書き込む</button>
+            <select id="reaciton_choice"class="reaction_choice">
+              <option value="https://cdn-icons-png.flaticon.com/128/9918/9918743.png">反応</option>
+              <option value="https://cdn-icons-png.flaticon.com/512/833/833472.png">❤️❤️❤️</option>
+              <option value="https://cdn-icons-png.flaticon.com/512/2107/2107957.png">⭐️⭐️⭐️</option>
+              <option value="https://cdn-icons-png.flaticon.com/128/4160/4160724.png">😍😍😍</option>
+              <option value="https://cdn-icons-png.flaticon.com/512/742/742751.png">😀😀😀</option>
+              <option value="https://cdn-icons-png.flaticon.com/512/3075/3075977.png">🍔🍔🍔</option>
+            </select>
+          </div>
+          
         </div>
         
       </aside>
@@ -123,10 +134,11 @@
       }
 
       function submitReaction(postID){
+        const reaction_Choice = document.getElementById("reaciton_choice").value;
         fetch(`/reaction/${boardName}`, {
           method: "POST",
           headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({sender:localStorage.getItem("visitorID"), id:postID}),
+          body: JSON.stringify({sender:localStorage.getItem("visitorID"), id:postID, reaction: reaction_Choice}),
         });
       }
       
@@ -200,6 +212,8 @@
         const thread = document.getElementById("thread");
         const postElement = createPostElement(msg);
         thread.appendChild(postElement);
+        scrollend()
+        scrollToPost(msg.id, postElement);
       });
 
       socket.on('delete_message', function(data) {
@@ -217,8 +231,6 @@
         postElement.src = data.reaction;
         postElement.alt = "Reaction";
         postElement.className = "heart";
-        postElement.style.width = "30px";
-        postElement.style.height = "30px";
         thread.appendChild(postElement);
         postElement.addEventListener('animationend', () => { postElement.remove(); });
       })

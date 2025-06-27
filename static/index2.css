@@ -113,7 +113,7 @@ aside {
     box-sizing: border-box; /* paddingを含めてwidth 100%にする */
 }
 
-.submit_button, .button {
+.submit_button, .button,.reaction_choice {
     padding: 10px 15px;
     border-radius: 10px;
     border: none;
@@ -122,6 +122,7 @@ aside {
     cursor: pointer;
     border-bottom: 2px solid #dcdcdc;
     align-self: flex-start; /* Aligns button to the left */
+    font-size: large;
 }
 
 .member_text {
@@ -171,7 +172,7 @@ aside {
     margin-top: 8px; /* ボタンとテキストの間のスペース */
 }
 
-.delete_button, .reaction_button,.reply_button {
+.delete_button,.reply_button {
     padding: 2px 10px; /* ボタンの縦と横の余白を小さくする */
     font-size: 12px;   /* 文字を小さくする */
     border-radius: 5px;
@@ -183,16 +184,26 @@ aside {
 .delete_button:hover, .reaction_button:hover {
     background-color: #e0e0e0;
 }
-/* --- ここまでがボタンの新しいスタイル --- */
+.reaction_button{
+    display: flex;
+    padding: 2px 10px; /* ボタンの縦と横の余白を小さくする */
+    font-size: 12px;   /* 文字を小さくする */
+    border-radius: 5px;
+    border: 2px solid #ccc;
+    background-color: #f0f0f0;
+    justify-content: center; /* 水平方向の中央寄せ */
+    align-items: center; /* 垂直方向の中央寄せ */
+    position: relative; /* 子要素の絶対位置を基準にする */
 
-/* Reaction Animation (No changes made) */
+    cursor: pointer;
+}
 .heart {
     z-index: 100;
     position: absolute;
     width: 30px;
     height: 30px;
     animation-name: fadeUpHeart;
-    animation-duration: 1s;
+    animation-duration: 2s;
     animation-timing-function: ease-out;
     animation-fill-mode: forwards;
 }
@@ -204,6 +215,6 @@ aside {
     }
     100% {
         opacity: 0;
-        transform: translateY(-80px);
+        transform: translateY(-160px);
     }
 }

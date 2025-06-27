@@ -115,9 +115,8 @@ def delete_message(board_name):
 @app.route('/reaction/<board_name>', methods=['POST'])
 def add_reaction(board_name):
     data = request.json
-    random_image = random.choice(["https://cdn-icons-png.flaticon.com/512/833/833472.png","https://cdn-icons-png.flaticon.com/512/2107/2107957.png","https://cdn-icons-png.flaticon.com/512/2107/2107932.png","https://cdn-icons-png.flaticon.com/512/742/742751.png","https://cdn-icons-png.flaticon.com/512/3075/3075977.png","https://cdn-icons-png.flaticon.com/512/2278/2278992.png"])
     msg = {
-        'reaction': random_image,
+        'reaction': data['reaction'],
         'id': data['id'],
     }
     # リアクションイベントを特定の掲示板ルームにのみブロードキャストする
